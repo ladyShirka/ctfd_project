@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Εργαστήριο CTF — Δραστηριότητες εξάσκησης</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&family=Noto+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f7fb; --panel:#ffffff; --panel2:#eef3fa; --line:#d6e0ee;
+    --text:#1f2a3c; --muted:#5b6b82;
+    --accent:#0e9f77; --accent-soft:#e6f6f0;
+    --blue:#3b6fe0; --blue-soft:#e8effd;
+    --amber:#b45309; --amber-soft:#fdf3e2;
+    --violet:#7c4dcc; --violet-soft:#f1ebfb;
+    --rose:#c2416b; --rose-soft:#fbe9ef;
+    --mono:'Noto Sans Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans',system-ui,sans-serif;line-height:1.55}
+  .wrap{max-width:1040px;margin:0 auto;padding:32px 20px 60px}
+
+  /* Hero */
+  .hero{background:linear-gradient(135deg,#e6f6f0 0%,#e8effd 60%,#f1ebfb 100%);border:1px solid var(--line);border-radius:20px;padding:32px 28px;position:relative;overflow:hidden}
+  .hero h1{margin:0 0 8px;font-size:clamp(1.8rem,4.5vw,2.6rem);font-weight:800;letter-spacing:-.01em}
+  .hero h1 .flag{font-family:var(--mono);color:var(--accent);font-weight:600}
+  .hero p{margin:0;max-width:640px;color:var(--muted);font-size:1.05rem}
+  .hero .deco{position:absolute;right:22px;top:18px;font-family:var(--mono);font-size:.85rem;color:#9fb3cc;text-align:right;line-height:1.7;user-select:none}
+  @media (max-width:720px){ .hero .deco{display:none} }
+
+  h2{font-size:1.3rem;margin:36px 0 14px}
+
+  /* How it works */
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
+  .step .n{display:inline-grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--blue-soft);color:var(--blue);font-weight:800;margin-bottom:6px}
+  .step b{display:block;margin-bottom:2px}
+  .step span{color:var(--muted);font-size:.93rem}
+  code{font-family:var(--mono);background:var(--panel2);padding:1px 6px;border-radius:5px;color:var(--amber);font-size:.92em}
+
+  /* Filters */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+  .chip{border:1px solid var(--line);background:var(--panel);color:var(--muted);border-radius:99px;padding:6px 14px;font-family:inherit;font-size:.9rem;cursor:pointer;font-weight:600}
+  .chip.on{background:var(--text);color:#fff;border-color:var(--text)}
+
+  /* Activity cards */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:18px}
+  .act{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;box-shadow:0 2px 10px rgba(31,42,60,.05);transition:transform .15s, box-shadow .15s;text-decoration:none;color:inherit}
+  a.act:hover{transform:translateY(-3px);box-shadow:0 8px 22px rgba(31,42,60,.10)}
+  .act .icon{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-size:1.6rem;margin-bottom:12px}
+  .act h3{margin:0 0 6px;font-size:1.12rem}
+  .act p{margin:0 0 14px;color:var(--muted);font-size:.94rem;flex:1}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tag{font-size:.75rem;font-weight:600;padding:2px 9px;border-radius:99px}
+  .act .foot{display:flex;align-items:center;justify-content:space-between;gap:10px;border-top:1px dashed var(--line);padding-top:12px;font-size:.88rem}
+  .go{font-weight:800;color:var(--accent)}
+  .bar{flex:1;height:8px;background:var(--panel2);border-radius:99px;overflow:hidden;max-width:120px}
+  .bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .prog{display:flex;align-items:center;gap:8px;color:var(--muted)}
+  .act.soon{opacity:.7;background:#fafbfd;box-shadow:none}
+  .act.soon .go{color:var(--muted);font-weight:600}
+
+  /* category colours */
+  .c-crypto .icon,.t-crypto{background:var(--accent-soft);color:var(--accent)}
+  .c-stego .icon,.t-stego{background:var(--violet-soft);color:var(--violet)}
+  .c-web .icon,.t-web{background:var(--blue-soft);color:var(--blue)}
+  .c-forensics .icon,.t-forensics{background:var(--rose-soft);color:var(--rose)}
+  .c-misc .icon,.t-misc{background:var(--amber-soft);color:var(--amber)}
+  .t-level{background:var(--panel2);color:var(--muted)}
+
+  /* Tools */
+  .tools{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+  .tool{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;text-decoration:none;color:inherit;display:block}
+  a.tool:hover{border-color:var(--blue)}
+  .tool b{display:block;color:var(--blue);margin-bottom:2px}
+  .tool span{color:var(--muted);font-size:.92rem}
+
+  .note{background:var(--amber-soft);border:1px solid #f3dcb5;border-radius:14px;padding:14px 18px;margin-top:30px;font-size:.95rem}
+  .note b{color:var(--amber)}
+  footer{color:var(--muted);font-size:.8rem;text-align:center;margin-top:36px}
+  .empty{color:var(--muted);padding:20px;text-align:center;grid-column:1/-1}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <section class="hero">
+    <div class="deco">flag{...}<br>01100110<br>ZmxhZ3s=<br>102 108 97 103</div>
+    <h1>Εργαστήριο <span class="flag">CTF</span></h1>
+    <p>Δραστηριότητες εξάσκησης για διαγωνισμούς κυβερνοασφάλειας τύπου <b>Capture the Flag</b>. Λύσε γρίφους, σπάσε κώδικες και βρες τις κρυμμένες σημαίες.</p>
+  </section>
+
+  <h2>Πώς δουλεύει</h2>
+  <div class="steps">
+    <div class="step"><div class="n">1</div><b>Διάλεξε αποστολή</b><span>Ξεκίνα από τις εύκολες και ανέβαινε σταδιακά.</span></div>
+    <div class="step"><div class="n">2</div><b>Παρατήρησε</b><span>Τι μορφή έχει το μήνυμα; Αριθμοί, περίεργα γράμματα, ένα <code>=</code> στο τέλος;</span></div>
+    <div class="step"><div class="n">3</div><b>Δοκίμασε</b><span>Κάνε μια υπόθεση, χρησιμοποίησε ένα εργαλείο και δες αν βγήκε κάτι που διαβάζεται.</span></div>
+    <div class="step"><div class="n">4</div><b>Υπόβαλε τη σημαία</b><span>Η απάντηση έχει πάντα τη μορφή <code>flag{...}</code>.</span></div>
+  </div>
+
+  <h2>Δραστηριότητες</h2>
+  <div class="filters" id="filters"></div>
+  <div class="grid" id="grid"></div>
+
+  <h2>Χρήσιμα εργαλεία</h2>
+  <div class="tools">
+    <a class="tool" href="https://gchq.github.io/CyberChef/" target="_blank" rel="noopener"><b>CyberChef ↗</b><span>Το «ελβετικό σουγιά» των CTF: From Decimal, From Base64, ROT13 και πολλά άλλα.</span></a>
+    <a class="tool" href="https://www.asciitable.com/" target="_blank" rel="noopener"><b>Πίνακας ASCII ↗</b><span>Ποιος αριθμός αντιστοιχεί σε κάθε χαρακτήρα.</span></a>
+    <a class="tool" href="https://ctfd.io/" target="_blank" rel="noopener"><b>Πλατφόρμα CTFd ↗</b><span>Η πλατφόρμα όπου γίνονται οι διαγωνισμοί.</span></a>
+  </div>
+
+  <div class="note"><b>Κανόνας του καλού χάκερ:</b> Ό,τι μαθαίνουμε εδώ το χρησιμοποιούμε μόνο σε ασκήσεις και διαγωνισμούς που είναι φτιαγμένοι γι' αυτό. Ποτέ σε συστήματα και λογαριασμούς άλλων χωρίς άδεια.</div>
+
+  <footer>Ευγενία Παπαδοπούλου, ΠΕ86 · CC BY-NC-SA 4.0</footer>
+</div>
+
+<script>
+/* ================================================================
+   ΛΙΣΤΑ ΔΡΑΣΤΗΡΙΟΤΗΤΩΝ
+   Για να προσθέσετε νέα δραστηριότητα, αντιγράψτε ένα {...} μπλοκ.
+   - cat:   crypto | stego | web | forensics | misc
+   - href:  το αρχείο της δραστηριότητας (στον ίδιο φάκελο)
+   - ready: true = διαθέσιμη, false = εμφανίζεται ως «Σύντομα»
+   - storageKey / total: (προαιρετικά) για την μπάρα προόδου
+   ================================================================ */
+const ACTIVITIES = [
+  {
+    title: "Αποστολή: Ο Χαμένος Κωδικός",
+    desc: "Τέσσερα μηνύματα, τέσσερις σημαίες. Ο κώδικας του Καίσαρα, ASCII, Base64 και ένα τελικό μήνυμα με δύο κλειδαριές.",
+    cat: "crypto", icon: "🔐", level: "Γυμνάσιο", difficulty: "Εύκολο",
+    href: "apostoli-xamenos-kodikos.html", ready: true,
+    storageKey: "ctf-xamenos-kodikos", total: 4
+  },
+  {
+    title: "Το Μυστικό της Εικόνας",
+    desc: "Μια φωτογραφία που κρύβει περισσότερα απ' όσα δείχνει. Εισαγωγή στη στεγανογραφία.",
+    cat: "stego", icon: "🖼️", level: "Γυμνάσιο", difficulty: "Εύκολο",
+    href: "#", ready: false
+  },
+  {
+    title: "Πίσω από τη Σελίδα",
+    desc: "Κρυμμένα σχόλια, αόρατο κείμενο και μυστικά στον κώδικα μιας ιστοσελίδας.",
+    cat: "web", icon: "🌐", level: "Γυμνάσιο", difficulty: "Εύκολο",
+    href: "#", ready: false
+  },
+  {
+    title: "Ο Χαμένος Κωδικός: Έκδοση Λυκείου",
+    desc: "Χωρίς έτοιμα εργαλεία. Hex, δυαδικό, Vigenère και πολλά στρώματα.",
+    cat: "crypto", icon: "🧩", level: "Λύκειο", difficulty: "Μέτριο",
+    href: "#", ready: false
+  }
+];
+
+const CATS = { crypto:"Κρυπτογραφία", stego:"Στεγανογραφία", web:"Web", forensics:"Forensics", misc:"Διάφορα" };
+let filter = "all";
+
+function progressOf(a){
+  if(!a.storageKey) return null;
+  try{
+    const s = JSON.parse(localStorage.getItem(a.storageKey) || "null");
+    if(s && Array.isArray(s.solved)) return s.solved.filter(Boolean).length;
+  }catch(e){}
+  return 0;
+}
+
+function renderFilters(){
+  const used = [...new Set(ACTIVITIES.map(a=>a.cat))];
+  const opts = [["all","Όλες"], ...used.map(c=>[c, CATS[c]||c])];
+  const host = document.getElementById("filters"); host.innerHTML = "";
+  opts.forEach(([k,label])=>{
+    const b = document.createElement("button");
+    b.className = "chip" + (filter===k ? " on" : "");
+    b.textContent = label;
+    b.onclick = ()=>{ filter = k; renderFilters(); renderGrid(); };
+    host.appendChild(b);
+  });
+}
+
+function renderGrid(){
+  const host = document.getElementById("grid"); host.innerHTML = "";
+  const list = ACTIVITIES.filter(a => filter==="all" || a.cat===filter);
+  if(!list.length){ host.innerHTML = '<div class="empty">Δεν υπάρχουν ακόμη δραστηριότητες σε αυτή την κατηγορία.</div>'; return; }
+  list.forEach(a=>{
+    const el = document.createElement(a.ready ? "a" : "div");
+    el.className = `act c-${a.cat}` + (a.ready ? "" : " soon");
+    if(a.ready) el.href = a.href;
+    let foot;
+    if(!a.ready){
+      foot = `<span class="go">⏳ Σύντομα</span>`;
+    } else {
+      const p = progressOf(a);
+      const done = p!==null && p===a.total;
+      const progHtml = (p!==null && a.total)
+        ? `<span class="prog"><span class="bar"><i style="width:${Math.round(100*p/a.total)}%"></i></span>${p}/${a.total} 🚩</span>`
+        : `<span></span>`;
+      foot = `${progHtml}<span class="go">${done ? "Ολοκληρώθηκε ✔" : (p ? "Συνέχεια →" : "Ξεκίνα →")}</span>`;
+    }
+    el.innerHTML = `
+      <div class="icon">${a.icon}</div>
+      <div class="tags">
+        <span class="tag t-${a.cat}">${CATS[a.cat]||a.cat}</span>
+        <span class="tag t-level">${a.level}</span>
+        <span class="tag t-level">${a.difficulty}</span>
+      </div>
+      <h3>${a.title}</h3>
+      <p>${a.desc}</p>
+      <div class="foot">${foot}</div>`;
+    host.appendChild(el);
+  });
+}
+
+renderFilters(); renderGrid();
+window.addEventListener("pageshow", renderGrid); // ανανέωση προόδου όταν επιστρέφει ο μαθητής
+</script>
+</body>
+</html>

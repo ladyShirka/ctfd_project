@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Αποστολή: Ο Χαμένος Κωδικός — Εισαγωγικό CTF Κρυπτογραφίας</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&family=Noto+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f7fb; --panel:#ffffff; --panel2:#eef3fa; --line:#d6e0ee;
+    --text:#1f2a3c; --muted:#5b6b82; --accent:#0e9f77; --accent2:#3b6fe0;
+    --warn:#b45309; --bad:#d64545; --soft:#f8fafd;
+    --mono:'Noto Sans Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans',system-ui,sans-serif;line-height:1.55}
+  .wrap{max-width:900px;margin:0 auto;padding:28px 18px 60px}
+  header h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+  header h1 span{color:var(--accent)}
+  .story{color:var(--muted);margin:0 0 18px}
+  .progress{display:flex;gap:8px;margin:18px 0 26px;flex-wrap:wrap}
+  .pip{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.85rem;color:var(--muted);cursor:pointer;text-align:left;font-family:inherit}
+  .pip b{display:block;color:var(--text);font-size:.95rem}
+  .pip.done{border-color:var(--accent);color:var(--accent)}
+  .pip.done b{color:var(--accent)}
+  .pip.locked{opacity:.45;cursor:not-allowed}
+  .pip.active{outline:2px solid var(--accent2);outline-offset:1px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:0 2px 10px rgba(31,42,60,.05)}
+  .card h2{margin:0 0 4px;font-size:1.35rem}
+  .tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--accent2);margin-right:6px;font-weight:600}
+  .cipher{font-family:var(--mono);background:var(--soft);border:1px dashed var(--line);border-radius:10px;padding:14px;margin:14px 0;word-break:break-all;font-size:1.05rem;color:var(--warn);position:relative}
+  .copy{position:absolute;top:6px;right:6px;font-size:.75rem;background:var(--panel2);color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:2px 8px;cursor:pointer;font-family:inherit}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  input[type=text], textarea{flex:1;min-width:200px;background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:10px 12px;font-family:var(--mono);font-size:.95rem}
+  textarea{width:100%;min-height:64px;resize:vertical}
+  button.main{background:var(--accent);color:#ffffff;border:0;border-radius:10px;padding:10px 18px;font-weight:800;cursor:pointer;font-family:inherit}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit}
+  .msg{margin-top:10px;min-height:1.4em;font-weight:600}
+  .msg.ok{color:var(--accent)} .msg.no{color:var(--bad)}
+  .hints details{background:var(--panel2);border-radius:10px;padding:8px 12px;margin-top:8px}
+  .hints summary{cursor:pointer;color:var(--warn);font-weight:600}
+  .learned{display:none;margin-top:14px;padding:12px 14px;border-left:4px solid var(--accent);background:#e6f6f0;border-radius:6px}
+  .learned.show{display:block}
+  .tools h2{margin-bottom:12px}
+  .tool{background:var(--panel2);border-radius:12px;padding:14px;margin-top:12px}
+  .tool h3{margin:0 0 8px;font-size:1rem}
+  .out{font-family:var(--mono);background:var(--soft);border-radius:8px;padding:10px;margin-top:8px;min-height:2.4em;word-break:break-all;color:var(--accent)}
+  .slider{display:flex;align-items:center;gap:12px;margin-top:8px}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .shift{font-family:var(--mono);font-size:1.3rem;font-weight:600;color:var(--warn);min-width:2.5ch;text-align:right}
+  .wheel{font-family:var(--mono);font-size:.82rem;color:var(--muted);margin-top:6px;overflow-x:auto;white-space:nowrap}
+  .wheel span{color:var(--accent)}
+  .win{display:none;text-align:center;border-color:var(--accent)}
+  .win.show{display:block}
+  .win h2{color:var(--accent);font-size:1.7rem}
+  .back{display:inline-block;margin-bottom:14px;color:var(--accent2);text-decoration:none;font-weight:600;font-size:.9rem}
+  .back:hover{text-decoration:underline}
+  footer{color:var(--muted);font-size:.8rem;text-align:center;margin-top:30px}
+  .hidden{display:none}
+  code{font-family:var(--mono);background:var(--soft);padding:1px 6px;border-radius:5px;color:var(--warn)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="index.html" class="back">← Όλες οι δραστηριότητες</a>
+    <h1>Αποστολή: <span>Ο Χαμένος Κωδικός</span></h1>
+    <p class="story">Μια ομάδα χάκερ έκρυψε τον κωδικό πρόσβασης του σχολικού server σε τέσσερα κρυπτογραφημένα μηνύματα. Είσαι ο νέος αναλυτής κυβερνοασφάλειας της ομάδας. Σε κάθε επίπεδο βρίσκεις μια «σημαία» της μορφής <code>flag{...}</code> και την υποβάλλεις για να ξεκλειδώσεις το επόμενο.</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+  <div id="levels"></div>
+
+  <div class="card win" id="win">
+    <h2>🏁 Αποστολή ολοκληρώθηκε!</h2>
+    <p>Βρήκες και τις τέσσερις σημαίες. Ο server είναι ξανά ασφαλής, χάρη σε σένα.</p>
+    <p style="color:var(--muted)">Το μεγάλο μάθημα: <b>κωδικοποίηση ≠ κρυπτογράφηση</b>. Ό,τι αποκωδικοποιείται χωρίς μυστικό κλειδί δεν προστατεύει τίποτα, και ένα πολύ μικρό κλειδί (όπως οι 25 μετατοπίσεις του Καίσαρα) σπάει με δοκιμές.</p>
+    <button class="ghost" id="reset">Ξεκίνα από την αρχή</button>
+  </div>
+
+  <div class="card tools">
+    <h2>🧰 Εργαλειοθήκη αναλυτή</h2>
+    <p class="story" style="margin:0">Τα εργαλεία δεν ξέρουν ποιο μήνυμα χρειάζεται ποιο εργαλείο. Αυτό είναι δική σου δουλειά.</p>
+
+    <div class="tool">
+      <h3>🔄 Τροχός του Καίσαρα</h3>
+      <textarea id="cIn" placeholder="Επικόλλησε εδώ το κείμενο…"></textarea>
+      <div class="slider"><span style="color:var(--muted)">Μετατόπιση:</span><input type="range" id="cShift" min="0" max="25" value="0"><span class="shift" id="cShiftV">0</span></div>
+      <div class="wheel" id="cWheel"></div>
+      <div class="out" id="cOut"></div>
+    </div>
+
+    <div class="tool">
+      <h3>🔢 Αριθμοί → Χαρακτήρες (ASCII)</h3>
+      <textarea id="aIn" placeholder="π.χ. 72 105"></textarea>
+      <div class="out" id="aOut"></div>
+    </div>
+
+    <div class="tool">
+      <h3>📦 Αποκωδικοποίηση Base64</h3>
+      <textarea id="bIn" placeholder="π.χ. SGVsbG8="></textarea>
+      <div class="out" id="bOut"></div>
+    </div>
+  </div>
+
+  <footer>Ευγενία Παπαδοπούλου, ΠΕ86 · CC BY-NC-SA 4.0 · Εισαγωγικό υλικό προετοιμασίας για μαθητικούς διαγωνισμούς CTF</footer>
+</div>
+
+<script>
+const LEVELS = [
+  {
+    title:"Επίπεδο 1 · Το μήνυμα του Ιούλιου", short:"Καίσαρας", tags:["Κρυπτογραφία","Εύκολο"],
+    story:"Το πρώτο μήνυμα βρέθηκε γραμμένο σε έναν πίνακα. Μοιάζει με αγγλικά… αλλά όχι ακριβώς. Ο χάκερ υπέγραψε ως «Ιούλιος».",
+    cipher:"iodj{mxolxv_zdv_khuh}",
+    hash:"1c125ca4ce570c3b5594cae7ac3c313215714f5c325c2924f505e7f8e892f094",
+    hints:[
+      "Οι αγκύλες { } και η κάτω παύλα _ έμειναν ίδιες. Άλλαξαν μόνο τα γράμματα. Τι σου θυμίζει η αρχή «iodj»; Πρέπει να γίνει «flag».",
+      "Ο Ιούλιος Καίσαρας έστελνε μηνύματα μετακινώντας κάθε γράμμα μερικές θέσεις στο αλφάβητο. Από το f στο i πόσες θέσεις είναι;",
+      "Χρησιμοποίησε τον Τροχό του Καίσαρα και δοκίμασε μετατοπίσεις μέχρι να εμφανιστεί το «flag»."
+    ],
+    learned:"Ο <b>κώδικας του Καίσαρα</b> αντικαθιστά κάθε γράμμα με αυτό που βρίσκεται κάποιες θέσεις πιο κάτω στο αλφάβητο. Έχει μόνο 25 πιθανά κλειδιά, άρα σπάει δοκιμάζοντας όλα (επίθεση <i>brute force</i>). Το κόλπο να ξέρεις ένα κομμάτι του αρχικού κειμένου («flag») λέγεται <i>known-plaintext</i>."
+  },
+  {
+    title:"Επίπεδο 2 · Ο υπολογιστής που μιλούσε με αριθμούς", short:"ASCII", tags:["Κωδικοποίηση","Εύκολο"],
+    story:"Το δεύτερο μήνυμα είναι μόνο αριθμοί. Κανένας δεν ξεπερνά το 127. Παράξενο…",
+    cipher:"102 108 97 103 123 110 117 109 98 101 114 115 95 97 114 101 95 108 101 116 116 101 114 115 125",
+    hash:"95a9e7d63a9551655c50968191c77c4e1ae18685d82c089bd9dd594a05979406",
+    hints:[
+      "Ο υπολογιστής δεν «ξέρει» γράμματα. Αποθηκεύει κάθε χαρακτήρα ως αριθμό.",
+      "Ο πίνακας που αντιστοιχίζει αριθμούς σε χαρακτήρες λέγεται ASCII. Στον ASCII το 102 είναι το «f».",
+      "Βάλε όλους τους αριθμούς στο εργαλείο «Αριθμοί → Χαρακτήρες»."
+    ],
+    learned:"Στον υπολογιστή <b>κάθε χαρακτήρας είναι ένας αριθμός</b>. Ο πίνακας <b>ASCII</b> αντιστοιχεί τα 128 βασικά σύμβολα στους αριθμούς 0–127 (π.χ. A=65, a=97). Αυτό είναι <i>κωδικοποίηση</i>, όχι κρυπτογράφηση: δεν υπάρχει κανένα μυστικό."
+  },
+  {
+    title:"Επίπεδο 3 · Το περίεργο ίσον", short:"Base64", tags:["Κωδικοποίηση","Μέτριο"],
+    story:"Το τρίτο μήνυμα μοιάζει με τυχαία γράμματα και αριθμούς. Οι χάκερ καυχιούνται ότι είναι «αδύνατο να σπάσει».",
+    cipher:"ZmxhZ3tiYXNlNjRfaXNfbm90X2VuY3J5cHRpb259",
+    hash:"d7ba614676b457e3e6c432df3d5965368400fd07723d23b85ddbbba4e8e781c3",
+    hints:[
+      "Κεφαλαία, πεζά και ψηφία, όλα ανακατεμένα. Αυτό το «αλφάβητο» έχει 64 σύμβολα (A–Z, a–z, 0–9, +, /).",
+      "Μια συχνή κωδικοποίηση στο διαδίκτυο λέγεται Base64. Τα μηνύματά της τελειώνουν συχνά με = ή ==, και το «flag{» γίνεται πάντα «ZmxhZ3». Κοίτα την αρχή!",
+      "Δοκίμασε το εργαλείο Base64."
+    ],
+    learned:"Το <b>Base64</b> μετατρέπει οποιαδήποτε δεδομένα (ακόμη και εικόνες) σε απλούς χαρακτήρες για να ταξιδέψουν με ασφάλεια σε email και ιστοσελίδες. Το «ZmxhZ3» στην αρχή είναι το αποτύπωμα του «flag{». Και όπως λέει η ίδια η σημαία: το Base64 <b>δεν είναι κρυπτογράφηση</b>. Ο καθένας μπορεί να το αποκωδικοποιήσει."
+  },
+  {
+    title:"Επίπεδο 4 · Δύο κλειδαριές", short:"Τελικό", tags:["Συνδυασμός","Δύσκολο"],
+    story:"Το τελευταίο μήνυμα προστατεύεται με δύο στρώματα, το ένα πάνω στο άλλο. Θα χρειαστείς όσα έμαθες ως τώρα.",
+    cipher:"c3ludHt5bmxyZWZfYnNfZnJwZXJnZn0=",
+    hash:"3a5a578180055a4bfe438d98956a3f8b0e77c74d05ef0f0fada46ccbebbe063f",
+    hints:[
+      "Το εξωτερικό στρώμα το αναγνωρίζεις από το = στο τέλος.",
+      "Μετά το πρώτο ξεκλείδωμα θα δεις κάτι σαν «synt{…}». Το s πρέπει να γίνει f.",
+      "Ο Καίσαρας με μετατόπιση 13 λέγεται ROT13. Είναι ειδική περίπτωση: αν τον εφαρμόσεις δύο φορές, παίρνεις πίσω το αρχικό κείμενο. Γιατί;"
+    ],
+    learned:"Στα πραγματικά CTF οι προκλήσεις έχουν συχνά <b>πολλά στρώματα</b>. Η στρατηγική είναι πάντα η ίδια: αναγνωρίζεις τη μορφή, ξεφλουδίζεις ένα στρώμα και ξανακοιτάς. Το <b>ROT13</b> (Καίσαρας με 13) είναι συμμετρικό, αφού 13+13=26: η ίδια πράξη κρυπτογραφεί και αποκρυπτογραφεί."
+  }
+];
+
+let state = {solved:[false,false,false,false], current:0};
+try{ const s = JSON.parse(localStorage.getItem('ctf-xamenos-kodikos')||'null'); if(s && Array.isArray(s.solved)) state = s; }catch(e){}
+function save(){ try{ localStorage.setItem('ctf-xamenos-kodikos', JSON.stringify(state)); }catch(e){} }
+function unlocked(i){ return i===0 || state.solved[i-1]; }
+
+async function sha256(t){
+  if(window.crypto && crypto.subtle){
+    try{
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('');
+    }catch(e){}
+  }
+  return sha256js(t); // εναλλακτική για σελίδες σε απλό http://
+}
+function sha256js(str){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const bytes=new TextEncoder().encode(str), l=bytes.length;
+  const n=((l+9+63)>>6)<<6, m=new Uint8Array(n); m.set(bytes); m[l]=0x80;
+  const bits=l*8; m[n-4]=bits>>>24; m[n-3]=(bits>>>16)&255; m[n-2]=(bits>>>8)&255; m[n-1]=bits&255;
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const W=new Array(64), r=(x,k)=>(x>>>k)|(x<<(32-k));
+  for(let o=0;o<n;o+=64){
+    for(let i=0;i<16;i++) W[i]=(m[o+4*i]<<24)|(m[o+4*i+1]<<16)|(m[o+4*i+2]<<8)|m[o+4*i+3];
+    for(let i=16;i<64;i++){const s0=r(W[i-15],7)^r(W[i-15],18)^(W[i-15]>>>3), s1=r(W[i-2],17)^r(W[i-2],19)^(W[i-2]>>>10); W[i]=(W[i-16]+s0+W[i-7]+s1)|0;}
+    let [a,b,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+W[i])|0;
+      const t2=((r(a,2)^r(a,13)^r(a,22))+((a&b)^(a&c)^(b&c)))|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    H=H.map((x,i)=>(x+[a,b,c,d,e,f,g,h][i])|0);
+  }
+  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');
+}
+
+function renderProgress(){
+  const p = document.getElementById('progress'); p.innerHTML='';
+  LEVELS.forEach((L,i)=>{
+    const b = document.createElement('button');
+    b.className = 'pip' + (state.solved[i]?' done':'') + (!unlocked(i)?' locked':'') + (state.current===i?' active':'');
+    b.innerHTML = `<b>${state.solved[i]?'✔':(unlocked(i)?'▶':'🔒')} Επίπεδο ${i+1}</b>${L.short}`;
+    b.onclick = ()=>{ if(unlocked(i)){ state.current=i; save(); render(); } };
+    p.appendChild(b);
+  });
+}
+
+function renderLevel(){
+  const host = document.getElementById('levels'); host.innerHTML='';
+  const i = state.current, L = LEVELS[i];
+  const c = document.createElement('div'); c.className='card';
+  c.innerHTML = `
+    <div>${L.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+    <h2>${L.title}</h2>
+    <p class="story" style="margin:6px 0 0">${L.story}</p>
+    <div class="cipher"><button class="copy">Αντιγραφή</button><span class="ct"></span></div>
+    <form class="row">
+      <input type="text" placeholder="flag{...}" autocomplete="off" spellcheck="false">
+      <button class="main" type="submit">Υποβολή</button>
+    </form>
+    <div class="msg"></div>
+    <div class="hints">${L.hints.map((h,k)=>`<details><summary>Βοήθεια ${k+1}</summary><p style="margin:6px 0 2px">${h}</p></details>`).join('')}</div>
+    <div class="learned ${state.solved[i]?'show':''}"><b>🎓 Τι έμαθες:</b> ${L.learned}</div>`;
+  c.querySelector('.ct').textContent = L.cipher;
+  c.querySelector('.copy').onclick = async (e)=>{
+    try{ await navigator.clipboard.writeText(L.cipher); e.target.textContent='Αντιγράφηκε ✓'; }
+    catch(err){ e.target.textContent='Επίλεξέ το χειροκίνητα'; }
+  };
+  const msg = c.querySelector('.msg');
+  if(state.solved[i]){ msg.className='msg ok'; msg.textContent='✔ Λυμένο!'; }
+  c.querySelector('form').onsubmit = async (e)=>{
+    e.preventDefault();
+    const v = c.querySelector('input').value.trim().toLowerCase();
+    if(!v){ return; }
+    if(!/^flag\{.*\}$/.test(v)){ msg.className='msg no'; msg.textContent='Η σημαία πρέπει να έχει τη μορφή flag{...}'; return; }
+    let h;
+    try{ h = await sha256(v); }catch(err){ msg.className='msg no'; msg.textContent='Ο έλεγχος δεν λειτουργεί σε αυτόν τον browser.'; return; }
+    if(h===L.hash){
+      state.solved[i]=true; msg.className='msg ok'; msg.textContent='🎉 Σωστό! Η σημαία είναι δική σου.';
+      c.querySelector('.learned').classList.add('show');
+      save(); renderProgress(); renderWin();
+      if(i<3){ const nx=document.createElement('button'); nx.className='main'; nx.style.marginTop='12px'; nx.textContent='Επόμενο επίπεδο →';
+        nx.onclick=()=>{ state.current=i+1; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); }; c.appendChild(nx); }
+    } else { msg.className='msg no'; msg.textContent='✘ Όχι ακόμη. Ξανακοίτα ή άνοιξε μια βοήθεια.'; }
+  };
+  host.appendChild(c);
+}
+function renderWin(){ document.getElementById('win').classList.toggle('show', state.solved.every(Boolean)); }
+function render(){ renderProgress(); renderLevel(); renderWin(); }
+document.getElementById('reset').onclick=()=>{ state={solved:[false,false,false,false],current:0}; save(); render(); window.scrollTo({top:0}); };
+
+// Tools
+const ABC='abcdefghijklmnopqrstuvwxyz';
+function caesar(s,k){ return s.replace(/[a-z]/gi, ch=>{ const up = ch===ch.toUpperCase(); const i=ABC.indexOf(ch.toLowerCase()); const r=ABC[(i+k)%26]; return up?r.toUpperCase():r; }); }
+const cIn=document.getElementById('cIn'), cSh=document.getElementById('cShift');
+function upC(){ const k=+cSh.value; document.getElementById('cShiftV').textContent=k;
+  document.getElementById('cOut').textContent = caesar(cIn.value,k);
+  document.getElementById('cWheel').innerHTML = 'πριν: '+ABC.split('').join(' ')+'<br>μετά: <span>'+caesar(ABC,k).split('').join(' ')+'</span>'; }
+cIn.oninput=upC; cSh.oninput=upC; upC();
+
+document.getElementById('aIn').oninput=e=>{
+  const nums=e.target.value.trim().split(/[\s,]+/).filter(Boolean);
+  document.getElementById('aOut').textContent = nums.map(n=>{const x=parseInt(n,10); return (x>=32&&x<127)?String.fromCharCode(x):'·';}).join('');
+};
+document.getElementById('bIn').oninput=e=>{
+  const o=document.getElementById('bOut');
+  try{ o.textContent = e.target.value.trim()? atob(e.target.value.trim()) : ''; o.style.color=''; }
+  catch(err){ o.textContent='Αυτό δεν είναι έγκυρο Base64.'; o.style.color='var(--bad)'; }
+};
+render();
+</script>
+</body>
+</html>
