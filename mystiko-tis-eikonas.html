@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Το Μυστικό της Εικόνας — Εισαγωγικό CTF Στεγανογραφίας</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;800&family=Noto+Sans+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f4f7fb; --panel:#ffffff; --panel2:#eef3fa; --line:#d6e0ee; --soft:#f8fafd;
+    --text:#1f2a3c; --muted:#5b6b82; --accent:#7c4dcc; --accent-soft:#f1ebfb;
+    --ok:#0e9f77; --ok-soft:#e6f6f0; --blue:#3b6fe0; --warn:#b45309; --bad:#d64545;
+    --mono:'Noto Sans Mono', ui-monospace, monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Noto Sans',system-ui,sans-serif;line-height:1.55}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 18px 60px}
+  .back{display:inline-block;margin-bottom:14px;color:var(--blue);text-decoration:none;font-weight:600;font-size:.9rem}
+  .back:hover{text-decoration:underline}
+  header h1{font-size:clamp(1.6rem,4vw,2.3rem);margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+  header h1 span{color:var(--accent)}
+  .story{color:var(--muted);margin:0 0 18px}
+  .progress{display:flex;gap:8px;margin:18px 0 26px;flex-wrap:wrap}
+  .pip{flex:1;min-width:120px;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:.85rem;color:var(--muted);cursor:pointer;text-align:left;font-family:inherit}
+  .pip b{display:block;color:var(--text);font-size:.95rem}
+  .pip.done{border-color:var(--ok);color:var(--ok)} .pip.done b{color:var(--ok)}
+  .pip.locked{opacity:.45;cursor:not-allowed}
+  .pip.active{outline:2px solid var(--accent);outline-offset:1px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:22px;box-shadow:0 2px 10px rgba(31,42,60,.05)}
+  .card h2{margin:0 0 4px;font-size:1.35rem}
+  .tag{display:inline-block;font-size:.75rem;padding:2px 8px;border-radius:99px;background:var(--accent-soft);color:var(--accent);margin-right:6px;font-weight:600}
+  .tag.lvl{background:var(--panel2);color:var(--muted)}
+  .imgbox{margin:16px 0;text-align:center;background:var(--soft);border:1px dashed var(--line);border-radius:12px;padding:12px}
+  .imgbox canvas,.imgbox img{max-width:100%;height:auto;border-radius:8px;image-rendering:pixelated;box-shadow:0 2px 8px rgba(31,42,60,.12)}
+  .imgbox .cap{font-size:.8rem;color:var(--muted);margin-top:6px}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+  input[type=text], textarea, select{background:var(--soft);border:1px solid var(--line);color:var(--text);border-radius:10px;padding:9px 12px;font-family:var(--mono);font-size:.95rem}
+  input[type=text]{flex:1;min-width:200px}
+  textarea{width:100%;min-height:58px;resize:vertical}
+  select{font-family:inherit}
+  button.main{background:var(--accent);color:#fff;border:0;border-radius:10px;padding:10px 18px;font-weight:800;cursor:pointer;font-family:inherit}
+  button.tbtn{background:var(--panel);color:var(--accent);border:1.5px solid var(--accent);border-radius:10px;padding:8px 14px;font-weight:700;cursor:pointer;font-family:inherit}
+  button.tbtn:hover{background:var(--accent-soft)}
+  button.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer;font-family:inherit}
+  .msg{margin-top:10px;min-height:1.4em;font-weight:600}
+  .msg.ok{color:var(--ok)} .msg.no{color:var(--bad)}
+  .hints details{background:var(--panel2);border-radius:10px;padding:8px 12px;margin-top:8px}
+  .hints summary{cursor:pointer;color:var(--warn);font-weight:600}
+  .learned{display:none;margin-top:14px;padding:12px 14px;border-left:4px solid var(--ok);background:var(--ok-soft);border-radius:6px}
+  .learned.show{display:block}
+  .tools h2{margin-bottom:4px}
+  .tool{background:var(--panel2);border-radius:12px;padding:14px;margin-top:12px}
+  .tool h3{margin:0 0 4px;font-size:1rem}
+  .tool p{margin:0 0 6px;color:var(--muted);font-size:.9rem}
+  .out{font-family:var(--mono);background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:10px;margin-top:8px;min-height:2.4em;word-break:break-all;color:var(--ok);white-space:pre-wrap}
+  .slider{display:flex;align-items:center;gap:12px;margin-top:6px}
+  input[type=range]{flex:1;accent-color:var(--accent)}
+  .val{font-family:var(--mono);font-size:1.2rem;font-weight:600;color:var(--warn);min-width:2.5ch;text-align:right}
+  .toolcanvas{display:none;margin-top:10px;text-align:center}
+  .toolcanvas canvas{max-width:100%;height:auto;border-radius:8px;image-rendering:pixelated;border:1px solid var(--line)}
+  .win{display:none;text-align:center;border-color:var(--ok)}
+  .win.show{display:block}
+  .win h2{color:var(--ok);font-size:1.7rem}
+  footer{color:var(--muted);font-size:.8rem;text-align:center;margin-top:30px}
+  code{font-family:var(--mono);background:var(--panel2);padding:1px 6px;border-radius:5px;color:var(--warn)}
+  .current{font-size:.85rem;color:var(--muted);margin:2px 0 0}
+  .current b{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a href="index.html" class="back">← Όλες οι δραστηριότητες</a>
+    <h1>Το Μυστικό <span>της Εικόνας</span></h1>
+    <p class="story">Η ομάδα κυβερνοασφάλειας υποψιάζεται ότι οι χάκερ στέλνουν μηνύματα μέσα σε φαινομενικά αθώες εικόνες. Η τεχνική λέγεται <b>στεγανογραφία</b>: δεν κρύβει <i>τι λέει</i> ένα μήνυμα, κρύβει <i>ότι υπάρχει</i> μήνυμα. Βρες τη σημαία <code>flag{...}</code> σε κάθε εικόνα.</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+  <div id="levels"></div>
+
+  <div class="card win" id="win">
+    <h2>🏁 Αποστολή ολοκληρώθηκε!</h2>
+    <p>Βρήκες και τις τέσσερις σημαίες. Πλέον ξέρεις ότι μια εικόνα μπορεί να «μιλάει» πολύ περισσότερο απ' όσο δείχνει.</p>
+    <p style="color:var(--muted)">Το μεγάλο μάθημα: <b>ο υπολογιστής βλέπει αριθμούς, όχι εικόνες</b>. Ό,τι δεν ξεχωρίζει το μάτι μας (μια διαφορά 1 στο χρώμα, ένα κείμενο μέσα στο αρχείο) το διαβάζει ένα πρόγραμμα αμέσως.</p>
+    <button class="ghost" id="reset">Ξεκίνα από την αρχή</button>
+  </div>
+
+  <div class="card tools">
+    <h2>🧰 Εργαστήριο ανάλυσης εικόνας</h2>
+    <p class="current">Τα εργαλεία δουλεύουν πάνω στην εικόνα του επιπέδου όπου βρίσκεσαι: <b id="curName"></b></p>
+
+    <div class="tool">
+      <h3>🔦 Φακός ενίσχυσης διαφορών</h3>
+      <p>Κάνει τις μικρές διαφορές χρώματος μεγάλες.</p>
+      <div class="slider"><span style="color:var(--muted)">Ένταση:</span><input type="range" id="lensK" min="1" max="64" value="1"><span class="val" id="lensV">1</span></div>
+      <div class="toolcanvas" id="lensBox"><canvas id="lensC"></canvas></div>
+    </div>
+
+    <div class="tool">
+      <h3>🎨 Κανάλια χρώματος &amp; bits</h3>
+      <p>Κάθε pixel έχει τρία κανάλια: Κόκκινο, Πράσινο, Μπλε (R, G, B). Κάθε κανάλι είναι ένας αριθμός 0–255, δηλαδή 8 bits.</p>
+      <div class="row">
+        <select id="chSel"><option value="0">Κόκκινο (R)</option><option value="1">Πράσινο (G)</option><option value="2">Μπλε (B)</option></select>
+        <select id="bitSel">
+          <option value="all">Όλο το κανάλι</option>
+          <option value="7">bit 7 (το πιο σημαντικό)</option><option value="6">bit 6</option><option value="5">bit 5</option><option value="4">bit 4</option>
+          <option value="3">bit 3</option><option value="2">bit 2</option><option value="1">bit 1</option><option value="0">bit 0 (το λιγότερο σημαντικό)</option>
+        </select>
+        <button class="tbtn" id="chGo">Προβολή</button>
+      </div>
+      <div class="toolcanvas" id="chBox"><canvas id="chC"></canvas></div>
+    </div>
+
+    <div class="tool">
+      <h3>📄 Ανάλυση αρχείου</h3>
+      <p>Ψάχνει μέσα στα bytes του αρχείου για κομμάτια που διαβάζονται σαν κείμενο.</p>
+      <button class="tbtn" id="strGo">Ανάλυση</button>
+      <div class="out hidden" id="strOut" style="display:none"></div>
+    </div>
+
+    <div class="tool">
+      <h3>🔢 Κείμενο από τα τελευταία bits (LSB)</h3>
+      <p>Διαβάζει στη σειρά το bit 0 κάθε pixel ενός καναλιού, τα ομαδοποιεί ανά 8 και τα μετατρέπει σε χαρακτήρες ASCII.</p>
+      <div class="row">
+        <select id="lsbSel"><option value="0">Κόκκινο (R)</option><option value="1">Πράσινο (G)</option><option value="2">Μπλε (B)</option></select>
+        <button class="tbtn" id="lsbGo">Εξαγωγή</button>
+      </div>
+      <div class="out" id="lsbOut" style="display:none"></div>
+    </div>
+
+    <div class="tool">
+      <h3>📦 Αποκωδικοποίηση Base64</h3>
+      <textarea id="bIn" placeholder="π.χ. SGVsbG8="></textarea>
+      <div class="out" id="bOut"></div>
+    </div>
+  </div>
+
+  <footer>Ευγενία Παπαδοπούλου, ΠΕ86 · CC BY-NC-SA 4.0 · Εισαγωγικό υλικό προετοιμασίας για μαθητικούς διαγωνισμούς CTF</footer>
+</div>
+
+<script>
+const IMGS = {"L1": "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", "L2": "iVBORw0KGgoAAAANSUhEUgAAAeAAAAEOCAIAAADe+FMwAAAAEXRFWHRBdXRob3IAQWdlbnQgWmVybyzCRIoAAAAZdEVYdFNvZnR3YXJlAFBhaW50TWFzdGVyIDMwMDAwxvzpAAAAGnRFWHRMb2NhdGlvbgBUaGVzc2Fsb25pa2kgcG9ydOiLsXUAAABAdEVYdENvbW1lbnQAS2FuZW5hIGRlbiBrb2l0YXplaSBwb3RlIGVkdzogZmxhZ3ttZXRhZGF0YV90ZWxsc190YWxlc30iqIqNAAAAGXRFWHRUaXRsZQBTdW5zZXQgb3ZlciB0aGUgc2VhOQ5juQAABGxJREFUeNrt3SFOa0EYhuH/kHYHGAwaww4OojuoQSEwKPaAKXtAIWowKFbQCroDRP0xNV1Ba9hAE0iBMPPP8+hLbufcmzcfE8Lpdut5AFCeE48AQKABEGgAgQZAoAEEGgCBBkCgAQQaAIEGEGgABBoAgQYQaAAEGkCgARBoAIEGQKABEGgAgQZAoAEEGgCBBkCgAQQaAIEGEGgABBpAoAEQaAAEGkCgARBoAIEGQKABEGgAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaAAEGkCgARBoAIEGQKABEGgAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaAAEGkCgARBoAIEGQKABBBoAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaACBBkCgARBoAIEGQKABBBoAgQbgsJFHQL3Gy7fv/LH9ZOpZUaNut557CuSLslgj0FBHl5UagYbSu6zUCDRUkGaZRqCh6DTLNOHH7KDwOv/73w4WNNJsSmNBQ7XT1ZRGoKHcGmo04YoDaS6c6w4saNTZ5wSBRvU0GoGGNL3TaAQaAIHGFDWiEWhI0ziNRqBRZ6cAgQYQaMxnZwGBRtGcCIEGQKAxNp0LgQZAoDGfnQ4EGkCgARBo3AA4IwINgEADINBtGF/c+t7fSRFoNBoQaACBxogGBJpUjW7tWtY1NAININAY0YBAo9GAQAMINEY0INBoNAg0AAKNEQ0ItEYDAg2AQGNEg0Cj0YBAU5n9ZOq8INAY0SDQaDQg0AAINH81otu5lnUBjUDjogMEGgCBJveIbuF7f/cbCDQuOkCgARBoWhjRuW8A3G8g0LjoAIEGM9N8phhdP1t4Com9P0x+8uVXj0vPECxoEvYdEGgAgcaIBgQaQKDBiAaBRqMBgQYQaIxoQKDRaBBoAAQaIxoQaDQaBBoAgcaIhrRG52enngLHNfrm+cNzAAsaoL0FPWy2ngLHebm79Bv9wYImXEaDQAMg0BjRgECj0SDQAAg0RjQINGg0CDQAAo0RDQKNRgMCDSDQYESDQKPRINAACDRGNBDeqIK3roAFDYA3qhDeugIWNITLaBBoAAQaIxqKN/IIcnP/CwLNF/rVfWtHXvVP/t0hXHGolfOCQKNZTgoCDSDQmJbOCAJN8n6pMwi0ijkXCDQAAm1EOxEg0IrmLCDQNNA1dYbwRhXK5L8QWNA5DdevPj9wUNfPFp5C+FVK4XIDLGiylE6dQaABBBqD1HwGgabq6qkzCLRG+4Qg0AAINFVPVPMZwktjNdpDACxoAIEGQKABBBoAgQYQaAAEGoDwRhUACxqAX1nQw2brKQBY0AAINIBAAyDQAAINgEADINAAAg2AQAMINAACDYBAAwg0AAININAAhDeqAFjQAHijCgAWNIBAAyDQAAINgEADINAAAg2AQAMINAACDSDQAAg0AAININAACDRAeKMKABY0AN6oAmBBAyDQAAINgEADCDQAAg2AQAMINAACDSDQAAg0AAINUI1PfVzt1zIROMwAAAAASUVORK5CYII=", "L3": "iVBORw0KGgoAAAANSUhEUgAAAeAAAAEOCAIAAADe+FMwAAAJ/ElEQVR42u3dMXLcNhiAUQCTKjfINXKSNGncuNEN3Lh2nxu4iGoVtm+hKndQlcZNCqVlCo0zsqXlgiR2+QN8b1QkjiPtAuAniOSu8v3DYwIgnmIIAAQaAIEGEGgABBpAoAEQaAAEGkCgARBoAIEGQKABEGgAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaAAEGkCgARBoAIEGQKABBBoAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaACBBkCgARBoAIEGQKABBBoAgQZAoAEEGgCBBhBoAAQaAIEGEGgABBpAoAEQaACBBkCggQv79ZefDYJAA0HrrNECDcTdO2u0QANxz2xotEADcc87a7RAAyDQwMJtsk20QANxb6rTaIEG4t7yrNECDcR9QYpGCzQQ9+WCGi3QQNwXc2u0QANx32pDowUaiPtGSBot0AAINNg+20QLNDDMuzxrtEADcUuq0QINxG2oRgs0ELeeGi3Qji6Iu36sVYH22+EgbjGtVYE+is+3d6/+M0RupUZHkO8fHo3CNRf6X3//a0zoIpTWqh20X98JQbex1qpA+/WdELeP1qpAp+FPPS/9rxCnjBot0APW+cP7tzN/4cP7txpNL03U6OQi4QEPMBdh6KiGlqsdtF/ficXjsSHQaYdTz8nJaHouoEYL9MinnpOT0XTePo0W6KPUWaOB5CJh/J2FKzAWT0csVzvokU89Jyej6fmkgRMdAj3+yY3kRIc6d1s6jRboo9RZo9XZ40eg49ZZo9XZs0CgQdc8F4G2fbaJ5hhF02iBPkSdNVqdPS8EOm6dNRoQ6A5uWNZo20zPTqBZvL0d5qugX56jQDu54USHOnumCPQoddZozfJ8D+4nQ9DF6eDPt3e/vf3dLPTo4x8fj/nEb97dmH076OvVea+Twk9f1z4aBJqIl+xcMLR99twFmiinnp2MVigjgEB3dieyRmuTcRBo9j/17GS0KhkNgaaPOmu0HhkTgSb6pTkXDJXIyAi07bNHiAYZH4F2csOJDvUxSgj0AHXWaBBodU4ajY2hsRJoUBwjhkCPsn22idYa4ybQ6qzRqIzR20e+f3g0CsPUzVuS6kvyrqR20OrsuaizQTCSAs2zn3e+faApIy1F43nZQOfvP079ed5jAc1/3X23nJcYlis8I98nBDfOISzQ58cx4Go77AmBnNKX2zv1tH3u6zvr2VHNAr3R9O1j5k+ubOYB9Fjn+vF0MlqdgyzF1WO7ez2cg04upnmO6owRbh/omTPO28835XN/p+GXm3le+dxXye1Ok9U8pJrBqfmErWYkLZmyl3+nfqgrpz5vezyL2lH5vM4eHYtmtvKg++EPl66NLUtx+5xqdLgddK74w9zohNTTKdqXC2XFA8jtTpO1enatNtG57g9XzNH2uZ452lOjxzNf51ZTv/Tz5Nf+eWq9ZvJVlvT8v2p0g0C3PeM8ff8xszg2npb6v1k1n2fF48nbxvPVz1MzsKem49Pt3bT20Hp1UhYN0dJp3T71p4Zx0ZOq/Ln71NeaZr/6liVU87Bffq2ZQ3VaOBeLxm3LnGp0oB30tCQZZ/+XmfX95Vmdz25ApkaPZ9EITHufjJ5JybRw4qYWC6BmqLdMx7T8zEaTKVvxeaZVY9v8YLzOnL7a6CzQXd/zmF98t7/0RbPtjzkNfcHwyrey1nytRY9nZh/X6nlt/zzTuP16Gv+p4oSkQO9/2zKpt7tuU6TbwirPAl/uy02RfipFoNef8Wx+GvdCW8jptQ+b6LbT2mo6Tj2MvOqWr8qpP/s9oO0SGnITndtdghLoiHsldwQbh6WX2vq6SDUd4+boyQ465o/GM5fFF1Vp6eX1FWf98rannPdudPOntvF/r5n6msecG71con58prp/bT7O8UO24nA+7E0d5fpT8sMlkWnh61zy2jpf6Pxjq+tg+cQVzlc/ec1XPPV3FjV69VObLvD+D/XLY/7lG6dW4NIWtJ363OhS4eWuTK5eik0O52M2ukT4KWxafoGl1XnqtPas1tT0QlCrZ9dq99TkqTWcsprHNv+Yp7pPXlOBqd34TNfd/8bZWa9bGwdsdMe/USWfuzH28/LXaBxH1797JV+mOL0f/7nnE7W5+j73Q/0GltLpPVu57uRGFzcpJxcM93gd/JB1HmlOTx28h9pHlx7fzTaf++Hok9sVhmt05dSno77XfndjsnROJxcJU283Es280fO+9ybnio8ID+nprf2D/5xxhRO1TzfbRpuyNPSdjqnixPSpQ/g4m+jS4+2re2WXIae+96O90yNi45wepNHFj+1Xe0nbvt9dTj2Mp7e7O+w3vOcvgog2ZWh0UWcOO27e09IMCrTKGD3HNubxwIFWZ2PoqNZogQbHM+ZUoG39jKQjmWPPbNEUjCcItJoYVZsszO8xAq3OxladGXuWXSTEcYu5FmhbPCPsiMWMDx9odTbO6swR5r2oBgOPtjprtEDrhUY7PrEG7KABkvugbeXoeeRtnxlgJRSNYLzxV2fGWA9FHRhsFtSZYVZF0QVGmgt1ZqS14SIhjkCsEIG2fbaJduxhnQwTaHU2L+rMkVdLUQF6nx11ZtQ1Uxz/mCMQaLB9xsrpPNC2ZjbR6oz1EzHQ6qzR6oxVFDHQ6qzR6oy1FDHQ6qzR6oxGu0iIYwk6WFfF9pmOZlCdOdTqKuqMeYTkFIejWqNtn7GJ7ibQ6qzR6oxGu0iIYwY6W2/F9pngM6vOHLbRRZ2JPL/qzJEbXdSZsLOszhy80UWdiTnX6oxGu0iIowKCrsZi+4wZh+SFKo5VjbZ9xiY6YqDVWaPVGY2OGGh1pmYNqDMa7SIhVj90sEqL7TMRNtHqjEbvEGh15ux6UGc0eodAqzNnV4U6o9E7BFqdsTbARUJsQ2DA1ZvvHx5tkdjF16//GAR6d/PuprMdtDqjzthHRwy0OqPOaHTEQKsz6oxGu0iIOsPgjS62z6gzxGx0UWfUGWI2uqgzQBr1hSrqjO0zXGIT7SIh6gxBG11sn1FniNnoos6oM8RsdFFn1BliNrqoM+oMMRvtIiHqDEEbXWyfAdIY90GrM7bPcJ1NdFFn1BliNrqoM+oMMRvtIiHqDEEbXWyfUWeI2eiizqgzxGx0UWfUGWI2uqgz6gwxG+0iIUDq74Uqts/YPsOOm+iizqgzxGx0UWfUGWI2uqgz6gwxG+0iIeoMQRtdbJ9RZ4jZ6KLOqDPEbHRRZ4AU+T5odcb2GaJtol0kRJ0haKPz/cOj7TPqDAHlN3++MQoAaYBfGguAQAMINAACDYBAAwg0AAININAACDQAAg0g0AAINIBAAyDQAAg0gEADINAAAg2AQAMINAACDYBAAwg0AAININAACDQAAg0g0AAINIBAAyDQAAINgEADINAAAg2AQAMINAACDYBAA/TgP5Fn+gHj2JnVAAAAAElFTkSuQmCC", "L4": "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"};
+const LEVELS = [
+  {
+    title:"Επίπεδο 1 · Η καρτ-ποστάλ", short:"Κρυφό χρώμα", tags:["Στεγανογραφία","Εύκολο"], img:"L1",
+    story:"Ένας ύποπτος έστειλε αυτή την αθώα καρτ-ποστάλ. Στο μήνυμά του γράφει μόνο: «Η σημαία είναι μπροστά στα μάτια σου».",
+    hash:"a99202bef3bf3acb810c0691879935364a264be58a1059cb42213cae9198e733",
+    hints:[
+      "Κοίτα τον ουρανό. Είναι πραγματικά ένα χρώμα παντού;",
+      "Κάθε χρώμα στον υπολογιστή είναι τρεις αριθμοί (R, G, B) από 0 έως 255. Το μάτι μας δεν ξεχωρίζει δύο χρώματα που διαφέρουν κατά 2–3 μονάδες. Ο υπολογιστής όμως τα ξεχωρίζει.",
+      "Χρησιμοποίησε τον Φακό ενίσχυσης διαφορών και ανέβασε σιγά-σιγά την ένταση."
+    ],
+    learned:"Κάθε χρώμα είναι ένας συνδυασμός <b>RGB</b>, π.χ. ο ουρανός εδώ είναι (135, 190, 235). Το κείμενο γράφτηκε με (135, 190, 238). Η διαφορά είναι μόλις 3 μονάδες, αόρατη για το μάτι αλλά προφανής για ένα πρόγραμμα. Αυτή είναι η πιο απλή μορφή <b>στεγανογραφίας</b>: κρύβουμε την <i>ύπαρξη</i> του μηνύματος, όχι το περιεχόμενό του (αυτό το κάνει η κρυπτογραφία)."
+  },
+  {
+    title:"Επίπεδο 2 · Το ηλιοβασίλεμα", short:"Μεταδεδομένα", tags:["Forensics","Εύκολο"], img:"L2",
+    story:"Αυτή η φωτογραφία φαίνεται εντελώς κανονική. Ο Φακός δεν δείχνει τίποτα. Ο «φωτογράφος» όμως άφησε κι άλλες πληροφορίες μέσα στο αρχείο.",
+    hash:"4deea4b3aa2f7839189965b136e8e24f8cb46e7280a57202e3c02e3fb26bd7a2",
+    hints:[
+      "Ένα αρχείο εικόνας δεν περιέχει μόνο pixels.",
+      "Τα αρχεία εικόνων κρατούν και <b>μεταδεδομένα</b> (metadata): ποιος τα έφτιαξε, με ποιο πρόγραμμα, πότε, πού.",
+      "Πάτησε «Ανάλυση αρχείου» και διάβασε προσεκτικά όλα τα κείμενα που βρέθηκαν."
+    ],
+    learned:"Τα <b>μεταδεδομένα</b> είναι «δεδομένα για τα δεδομένα». Οι φωτογραφίες από κινητό κρατούν συχνά (στα λεγόμενα <b>EXIF</b>) το μοντέλο της συσκευής, την ημερομηνία και την <b>τοποθεσία GPS</b> όπου τραβήχτηκαν! Γι' αυτό, πριν ανεβάσεις μια φωτογραφία κάπου δημόσια, καλό είναι να ξέρεις τι «λέει» για σένα. Στα CTF, η ανάλυση αρχείων ανήκει στην κατηγορία <b>Forensics</b>."
+  },
+  {
+    title:"Επίπεδο 3 · Τα βουνά", short:"Bit planes", tags:["Στεγανογραφία","Μέτριο"], img:"L3",
+    story:"Αυτή τη φορά ούτε ο Φακός ούτε η Ανάλυση αρχείου βρίσκουν κάτι. Οι χάκερ έγιναν πιο έξυπνοι: έκρυψαν το μήνυμα στο πιο «ασήμαντο» κομμάτι κάθε pixel.",
+    hash:"b7b75a52f4894bb0b060611c03232dd4bf96b4d9873acfcc3a51dcd55c587864",
+    hints:[
+      "Κάθε κανάλι χρώματος είναι ένας αριθμός 0–255, δηλαδή 8 bits. Π.χ. 200 = 11001000.",
+      "Αν αλλάξεις το τελευταίο bit (bit 0), ο αριθμός αλλάζει μόνο κατά 1. Το 200 γίνεται 201, και κανείς δεν το καταλαβαίνει.",
+      "Στο εργαλείο «Κανάλια &amp; bits» διάλεξε bit 0 και δοκίμασε ένα-ένα τα τρία κανάλια."
+    ],
+    learned:"Το bit 0 λέγεται <b>LSB</b> (Least Significant Bit, λιγότερο σημαντικό bit). Αν αλλάξει, το χρώμα αλλάζει κατά 1 στα 256, κάτι εντελώς αόρατο. Γι' αυτό το LSB είναι η πιο διάσημη τεχνική στεγανογραφίας. Η προβολή «ένα bit τη φορά» λέγεται <b>bit plane</b> και είναι από τα πρώτα πράγματα που δοκιμάζει κανείς σε μια εικόνα στα CTF."
+  },
+  {
+    title:"Επίπεδο 4 · Η πόλη που μιλάει", short:"Τελικό", tags:["Συνδυασμός","Δύσκολο"], img:"L4",
+    story:"Το τελευταίο μήνυμα δεν είναι εικόνα μέσα στην εικόνα. Είναι <b>γράμματα</b> κρυμμένα στα bits. Θυμήσου: στον υπολογιστή κάθε χαρακτήρας είναι ένας αριθμός, και κάθε αριθμός είναι 8 bits.",
+    hash:"3e255dcc64b8844fc09e6d25a5f2630decaabc8f504a39a32787e784437e8f74",
+    hints:[
+      "Η τεχνική είναι ίδια με το επίπεδο 3 (LSB), αλλά αυτή τη φορά τα bits διαβάζονται <b>στη σειρά</b>: κάθε 8 bits κάνουν έναν χαρακτήρα ASCII.",
+      "Χρησιμοποίησε το εργαλείο «Κείμενο από τα τελευταία bits». Μόνο ένα από τα τρία κανάλια δίνει κάτι με νόημα.",
+      "Αυτό που βγαίνει ξεκινά με <code>ZmxhZ</code>. Το έχεις ξαναδεί; Υπάρχει και δεύτερη κλειδαριά."
+    ],
+    learned:"Έτσι δουλεύουν τα πραγματικά προγράμματα στεγανογραφίας: παίρνουν ένα κείμενο, το μετατρέπουν σε bits (μέσω <b>ASCII</b>) και βάζουν ένα bit στο LSB κάθε pixel. Μια εικόνα 480×270 έχει 129.600 pixels, άρα χωράει πάνω από 16.000 χαρακτήρες, χωρίς καμία ορατή αλλαγή! Εδώ υπήρχε και δεύτερο στρώμα (<b>Base64</b>), όπως συμβαίνει συχνά στους διαγωνισμούς."
+  }
+];
+
+const KEY='ctf-mystiko-eikonas';
+let state={solved:[false,false,false,false],current:0};
+try{ const s=JSON.parse(localStorage.getItem(KEY)||'null'); if(s&&Array.isArray(s.solved)) state=s; }catch(e){}
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} }
+function unlocked(i){ return i===0||state.solved[i-1]; }
+
+/* ---------- εικόνες & pixels ---------- */
+const cache={};
+function loadImg(key){
+  if(cache[key]) return Promise.resolve(cache[key]);
+  return new Promise((res,rej)=>{
+    const im=new Image();
+    im.onload=()=>{ const c=document.createElement('canvas'); c.width=im.width; c.height=im.height;
+      const x=c.getContext('2d'); x.drawImage(im,0,0); const d=x.getImageData(0,0,c.width,c.height);
+      cache[key]={img:im,data:d,w:c.width,h:c.height}; res(cache[key]); };
+    im.onerror=rej; im.src='data:image/png;base64,'+IMGS[key];
+  });
+}
+function curKey(){ return LEVELS[state.current].img; }
+function drawTo(canvasId, w, h, fn){
+  const c=document.getElementById(canvasId); c.width=w; c.height=h;
+  const x=c.getContext('2d'); const out=x.createImageData(w,h); fn(out.data); x.putImageData(out,0,0);
+}
+
+/* ---------- SHA-256 ---------- */
+async function sha256(t){
+  if(window.crypto && crypto.subtle){
+    try{ const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));
+      return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join(''); }catch(e){}
+  }
+  return sha256js(t);
+}
+function sha256js(str){
+  const K=[0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
+  const bytes=new TextEncoder().encode(str), l=bytes.length;
+  const n=((l+9+63)>>6)<<6, m=new Uint8Array(n); m.set(bytes); m[l]=0x80;
+  const bits=l*8; m[n-4]=bits>>>24; m[n-3]=(bits>>>16)&255; m[n-2]=(bits>>>8)&255; m[n-1]=bits&255;
+  let H=[0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
+  const W=new Array(64), r=(x,k)=>(x>>>k)|(x<<(32-k));
+  for(let o=0;o<n;o+=64){
+    for(let i=0;i<16;i++) W[i]=(m[o+4*i]<<24)|(m[o+4*i+1]<<16)|(m[o+4*i+2]<<8)|m[o+4*i+3];
+    for(let i=16;i<64;i++){const s0=r(W[i-15],7)^r(W[i-15],18)^(W[i-15]>>>3), s1=r(W[i-2],17)^r(W[i-2],19)^(W[i-2]>>>10); W[i]=(W[i-16]+s0+W[i-7]+s1)|0;}
+    let [a,b,c,d,e,f,g,h]=H;
+    for(let i=0;i<64;i++){
+      const t1=(h+(r(e,6)^r(e,11)^r(e,25))+((e&f)^(~e&g))+K[i]+W[i])|0;
+      const t2=((r(a,2)^r(a,13)^r(a,22))+((a&b)^(a&c)^(b&c)))|0;
+      h=g; g=f; f=e; e=(d+t1)|0; d=c; c=b; b=a; a=(t1+t2)|0;
+    }
+    H=H.map((x,i)=>(x+[a,b,c,d,e,f,g,h][i])|0);
+  }
+  return H.map(x=>(x>>>0).toString(16).padStart(8,'0')).join('');
+}
+
+/* ---------- επίπεδα ---------- */
+function renderProgress(){
+  const p=document.getElementById('progress'); p.innerHTML='';
+  LEVELS.forEach((L,i)=>{
+    const b=document.createElement('button');
+    b.className='pip'+(state.solved[i]?' done':'')+(!unlocked(i)?' locked':'')+(state.current===i?' active':'');
+    b.innerHTML=`<b>${state.solved[i]?'✔':(unlocked(i)?'▶':'🔒')} Επίπεδο ${i+1}</b>${L.short}`;
+    b.onclick=()=>{ if(unlocked(i)){ state.current=i; save(); render(); } };
+    p.appendChild(b);
+  });
+}
+function renderLevel(){
+  const host=document.getElementById('levels'); host.innerHTML='';
+  const i=state.current, L=LEVELS[i];
+  const c=document.createElement('div'); c.className='card';
+  c.innerHTML=`
+    <div>${L.tags.map((t,k)=>`<span class="tag ${k?'lvl':''}">${t}</span>`).join('')}</div>
+    <h2>${L.title}</h2>
+    <p class="story" style="margin:6px 0 0">${L.story}</p>
+    <div class="imgbox"><img alt="Εικόνα επιπέδου ${i+1}" src="data:image/png;base64,${IMGS[L.img]}"><div class="cap">Η ύποπτη εικόνα · τα εργαλεία πιο κάτω δουλεύουν πάνω της</div></div>
+    <form class="row">
+      <input type="text" placeholder="flag{...}" autocomplete="off" spellcheck="false">
+      <button class="main" type="submit">Υποβολή</button>
+    </form>
+    <div class="msg"></div>
+    <div class="hints">${L.hints.map((h,k)=>`<details><summary>Βοήθεια ${k+1}</summary><p style="margin:6px 0 2px">${h}</p></details>`).join('')}</div>
+    <div class="learned ${state.solved[i]?'show':''}"><b>🎓 Τι έμαθες:</b> ${L.learned}</div>`;
+  const msg=c.querySelector('.msg');
+  if(state.solved[i]){ msg.className='msg ok'; msg.textContent='✔ Λυμένο!'; }
+  c.querySelector('form').onsubmit=async(e)=>{
+    e.preventDefault();
+    let v=c.querySelector('input').value.trim().toLowerCase();
+    if(!v) return;
+    const mm=v.match(/flag\{[^}]*\}/); if(mm) v=mm[0];
+    if(!/^flag\{.*\}$/.test(v)){ msg.className='msg no'; msg.textContent='Η σημαία πρέπει να έχει τη μορφή flag{...}'; return; }
+    const h=await sha256(v);
+    if(h===L.hash){
+      state.solved[i]=true; msg.className='msg ok'; msg.textContent='🎉 Σωστό! Η σημαία είναι δική σου.';
+      c.querySelector('.learned').classList.add('show'); save(); renderProgress(); renderWin();
+      if(i<3){ const nx=document.createElement('button'); nx.className='main'; nx.style.marginTop='12px'; nx.textContent='Επόμενο επίπεδο →';
+        nx.onclick=()=>{ state.current=i+1; save(); render(); window.scrollTo({top:0,behavior:'smooth'}); }; c.appendChild(nx); }
+    } else { msg.className='msg no'; msg.textContent='✘ Όχι ακόμη. Δοκίμασε άλλο εργαλείο ή άνοιξε μια βοήθεια.'; }
+  };
+  host.appendChild(c);
+}
+function renderWin(){ document.getElementById('win').classList.toggle('show',state.solved.every(Boolean)); }
+function resetTools(){
+  ['lensBox','chBox'].forEach(id=>document.getElementById(id).style.display='none');
+  ['strOut','lsbOut'].forEach(id=>document.getElementById(id).style.display='none');
+  document.getElementById('lensK').value=1; document.getElementById('lensV').textContent='1';
+  document.getElementById('curName').textContent=LEVELS[state.current].title;
+}
+function render(){ renderProgress(); renderLevel(); renderWin(); resetTools(); }
+document.getElementById('reset').onclick=()=>{ state={solved:[false,false,false,false],current:0}; save(); render(); window.scrollTo({top:0}); };
+
+/* ---------- εργαλεία ---------- */
+// Φακός: τιμή × ένταση mod 256 → μικρές διαφορές γίνονται μεγάλες
+const lensK=document.getElementById('lensK');
+lensK.oninput=async()=>{
+  const k=+lensK.value; document.getElementById('lensV').textContent=k;
+  const {data,w,h}=await loadImg(curKey());
+  drawTo('lensC',w,h,o=>{ const s=data.data;
+    for(let p=0;p<s.length;p+=4){ o[p]=(s[p]*k)&255; o[p+1]=(s[p+1]*k)&255; o[p+2]=(s[p+2]*k)&255; o[p+3]=255; } });
+  document.getElementById('lensBox').style.display='block';
+};
+// Κανάλια & bits
+document.getElementById('chGo').onclick=async()=>{
+  const ch=+document.getElementById('chSel').value, bit=document.getElementById('bitSel').value;
+  const {data,w,h}=await loadImg(curKey());
+  drawTo('chC',w,h,o=>{ const s=data.data;
+    for(let p=0;p<s.length;p+=4){
+      const v=s[p+ch];
+      const g = bit==='all' ? v : (((v>>+bit)&1) ? 255 : 0);
+      o[p]=ch===0?g:0; o[p+1]=ch===1?g:0; o[p+2]=ch===2?g:0;
+      if(bit!=='all'){ o[p]=o[p+1]=o[p+2]=g; }
+      o[p+3]=255; } });
+  document.getElementById('chBox').style.display='block';
+};
+// Ανάλυση αρχείου: κομμάτια με εκτυπώσιμους χαρακτήρες
+document.getElementById('strGo').onclick=()=>{
+  const bin=atob(IMGS[curKey()]); const found=[]; let cur='';
+  for(let i=0;i<bin.length;i++){
+    const c=bin.charCodeAt(i);
+    if(c>=32&&c<127){ cur+=bin[i]; }
+    else { if(cur.length>=6) found.push(cur); cur=''; }
+    if(c===0 && found.length && cur==='' ) {}
+  }
+  if(cur.length>=6) found.push(cur);
+  const o=document.getElementById('strOut');
+  o.textContent=`Μέγεθος αρχείου: ${bin.length} bytes\nΚείμενα που βρέθηκαν (${found.length}):\n\n`+found.map(s=>'• '+s).join('\n');
+  o.style.display='block';
+};
+// LSB → κείμενο
+document.getElementById('lsbGo').onclick=async()=>{
+  const ch=+document.getElementById('lsbSel').value;
+  const {data}=await loadImg(curKey()); const s=data.data;
+  let out='', byte=0, n=0;
+  for(let p=0;p<s.length && out.length<64;p+=4){
+    byte=(byte<<1)|(s[p+ch]&1); n++;
+    if(n===8){ if(byte===0 && out.replace(/·/g,'').length>0) break; out+=(byte>=32&&byte<127)?String.fromCharCode(byte):'·'; byte=0; n=0; }
+  }
+  const o=document.getElementById('lsbOut'); o.textContent=out||'(δεν βρέθηκε τίποτα)'; o.style.display='block';
+};
+// Base64
+document.getElementById('bIn').oninput=e=>{
+  const o=document.getElementById('bOut');
+  try{ o.textContent=e.target.value.trim()?atob(e.target.value.trim()):''; o.style.color=''; }
+  catch(err){ o.textContent='Αυτό δεν είναι έγκυρο Base64.'; o.style.color='var(--bad)'; }
+};
+render();
+</script>
+</body>
+</html>
